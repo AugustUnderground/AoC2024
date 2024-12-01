@@ -6,7 +6,7 @@ import Data.Maybe
 import Data.SortedMap
 
 readInt : String -> Int
-readInt s = fromMaybe 0 $ parseInteger {a=Int} s
+readInt = fromMaybe 0 . parseInteger {a=Int}
 
 distance : List Int -> Int
 distance []             = 0
@@ -16,15 +16,6 @@ distance [_]            = 0
 processInput : String -> Int
 processInput content = sum . map distance . transpose . map sort . transpose
                      . map (map (readInt) . words) $ lines content
-
-solve1 : IO ()
-solve1 = do file <- readFile path
-            case file of
-                 Right content => putStrLn . ("A: " ++) . show
-                                $ processInput content
-                 Left  error   => putStrLn (show error)
-  where
-    path = "./rsc/day01.txt"
 
 numOccurance : List Int -> Int -> Int
 numOccurance xs y = cast . length . takeWhile (== y) . dropWhile (< y) $ xs
@@ -44,15 +35,14 @@ processInput' : String -> Int
 processInput' content = sum . map (\(a,s) => a * s) . compSim . transpose
                       . map (map (readInt) . words) $ lines content
 
-solve2 : IO ()
-solve2 = do file <- readFile path
-            case file of
-                 Right content => putStrLn . ("B: " ++) . show
-                                $ processInput' content
-                 Left  error   => putStrLn (show error)
-  where
-    path = "./rsc/day01.txt"
-
 public export
 solve : IO ()
-solve = solve1 >> solve2
+solve = do file <- readFile path
+           case file of
+                Right content => let silver = show $ processInput content
+                                     gold   = show $ processInput' content
+                                     in putStrLn $ "Silver: " ++ silver
+                                                ++ "\nGold: " ++ gold
+                Left  error   => putStrLn (show error)
+  where
+    path = "./rsc/day01.txt"
