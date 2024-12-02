@@ -9,9 +9,9 @@ readInt : String -> Int
 readInt = fromMaybe 0 . parseInteger {a=Int}
 
 distance : List Int -> Int
-distance []             = 0
-distance (x :: y :: xs) = abs $ x - y
-distance [_]            = 0
+distance []            = 0
+distance (x :: y :: _) = abs $ x - y
+distance [_]           = 0
 
 processInput : String -> Int
 processInput content = sum . map distance . transpose . map sort . transpose
