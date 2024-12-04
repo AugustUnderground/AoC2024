@@ -19,15 +19,14 @@ inMap ls = M.fromList . zip idx $ foldl1 (++) ls
 processInput' :: [String] -> M.Map (Int,Int) Char -> Int
 processInput' ps dct = length $ filter id i
   where
-    i = [  (catMaybes [M.lookup (i'+d,j'+d) dct | d <- [-1,0,1]] `elem` ps)
-            &&
-            (catMaybes [M.lookup (i'+d,j'-d) dct | d <- [-1,0,1]]  `elem` ps)
-          
+    i = [ (catMaybes [M.lookup (i'+d,j'+d) dct | d <- [-1,0,1]] `elem` ps)
+           &&
+          (catMaybes [M.lookup (i'+d,j'-d) dct | d <- [-1,0,1]]  `elem` ps)
         | (i',j') <- M.keys dct ]
 
 processInput :: String -> M.Map (Int,Int) Char -> Int
 processInput p dct = length $ filter id u 
   where
-    ds  = [(x',y') | x' <- [-1,0,1], y' <- [-1,0,1]]
     u   = [ (==p) $ catMaybes [ M.lookup (i'+x*n,j'+y*n) dct | n <- [0 .. 3] ]
-         | (x,y) <- ds , (i',j') <- M.keys dct ]
+          | (x,y)   <- [(x,y) | x <- [-1,0,1], y <- [-1,0,1], x /= 0 || y /= 0]
+          , (i',j') <- M.keys dct ]
