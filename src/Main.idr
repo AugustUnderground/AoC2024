@@ -6,6 +6,7 @@ import Day03
 import Day04
 import Day05
 import Day06
+import Day07
 
 main : IO ()
-main = Day06.solve
+main = Day07.solve
