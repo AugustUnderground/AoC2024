@@ -38,8 +38,8 @@ solve : IO ()
 solve = do file <- readFile path
            case file of
                 Right content => let (silver,gold) = process $ lines content
-                                  in putStrLn $ "Silver: " ++ show silver
-                                             ++ "\nGold: " ++ show gold
+                                  in putStrLn $ "\tSilver: " ++ show silver
+                                           ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day07.txt"

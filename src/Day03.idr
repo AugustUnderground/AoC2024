@@ -49,8 +49,8 @@ solve = do file <- readFile path
                 Right content => let program = joinBy "" $ lines content
                                      silver  = show $ process program
                                      gold    = show $ process' True program
-                                     in putStrLn $ "Silver: " ++ silver
-                                                ++ "\nGold: " ++ gold
+                                     in putStrLn $ "\tSilver: " ++ silver
+                                              ++ "\n\tGold:   "   ++ gold
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day03.txt"

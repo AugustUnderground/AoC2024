@@ -1,5 +1,7 @@
 module Main
 
+import Data.List
+
 import Day01
 import Day02
 import Day03
@@ -8,5 +10,21 @@ import Day05
 import Day06
 import Day07
 
+solutions : List (String, IO ())
+solutions = zip days sols
+  where
+    days = map show [1 .. 7]
+    sols = [ Day01.solve, Day02.solve, Day03.solve, Day04.solve, Day05.solve
+           , Day06.solve, Day07.solve ]
+
+run : List (String, IO ()) -> IO ()
+run [] = pure ()
+run ((day,sol) :: days) = do
+  putStrLn $ "Day " ++ day ++ ":"
+  sol
+  run days
+
 main : IO ()
-main = Day04.solve
+main = do 
+  Day07.solve
+  -- run solutions

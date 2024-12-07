@@ -48,8 +48,8 @@ solve = do file <- readFile path
                 Right content => let reports = map (map readInt . words) $ lines content
                                      silver  = show $ processInput 0 reports
                                      gold    = show $ processInput 1 reports
-                                     in putStrLn $ "Silver: " ++ silver
-                                                ++ "\nGold: " ++ gold
+                                     in putStrLn $ "\tSilver: " ++ silver
+                                              ++ "\n\tGold:   " ++ gold
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day02.txt"

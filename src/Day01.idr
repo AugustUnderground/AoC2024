@@ -41,8 +41,8 @@ solve = do file <- readFile path
            case file of
                 Right content => let silver = show $ processInput content
                                      gold   = show $ processInput' content
-                                     in putStrLn $ "Silver: " ++ silver
-                                                ++ "\nGold: " ++ gold
+                                     in putStrLn $ "\tSilver: " ++ silver
+                                              ++ "\n\tGold:   " ++ gold
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day01.txt"

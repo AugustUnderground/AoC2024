@@ -62,8 +62,8 @@ solve = do file <- readFile path
            case file of
                 Right content => let (ordering,updates) = split' $ lines content
                                      (silver,gold)      = process ordering updates
-                                  in putStrLn $ "Silver: " ++ show silver
-                                             ++ "\nGold: " ++ show gold
+                                  in putStrLn $ "\tSilver: " ++ show silver
+                                           ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day05.txt"
