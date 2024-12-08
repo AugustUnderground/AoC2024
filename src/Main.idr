@@ -9,6 +9,7 @@ import Day04
 import Day05
 import Day06
 import Day07
+import Day08
 
 solutions : List (String, IO ())
 solutions = zip days sols
@@ -25,6 +26,5 @@ run ((day,sol) :: days) = do
   run days
 
 main : IO ()
-main = do 
-  Day07.solve
+main = Day08.solve
   -- run solutions

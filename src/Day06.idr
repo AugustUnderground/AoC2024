@@ -7,9 +7,6 @@ import Data.List1
 import Data.Nat
 import Data.SortedSet
 
-readInt : String -> Int
-readInt = fromMaybe 0 . parseInteger {a=Int}
-
 data Direction = North | South | East | West
 
 Eq Direction where
