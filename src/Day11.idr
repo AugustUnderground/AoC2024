@@ -3,9 +3,7 @@ module Day11
 import System.File
 import Data.String
 import Data.Maybe
-import Data.List
-import Data.SortedMap
-import Debug.Trace
+import Data.SortedMap as Map
 
 readInt : String -> Int
 readInt = fromMaybe 0 . parseInteger {a=Int}
@@ -19,9 +17,6 @@ nDig x = cast . ceiling . log10 . cast $ x + 1
 both : (a -> b) -> (a,a) -> (b,b) 
 both f (x,y) = (f x, f y)
 
-tl : (a,a) -> List a
-tl (x,y) = [x,y]
-
 splitDigs : Int -> (Int,Int)
 splitDigs i = both (readInt . pack) . splitAt n $ unpack j
   where
@@ -29,31 +24,27 @@ splitDigs i = both (readInt . pack) . splitAt n $ unpack j
     n : Nat
     n = cast $ (cast $ length j) `div` 2
 
-blink' : Int -> SortedMap Int Int
-blink' 0 = fromList [(0,-1), (1,1)]
-blink' s with (mod (nDig s) 2 == 0)
-  blink' s | True  = let (a,b) = splitDigs s
-                      in fromList [(s,-1),(a,1),(b,1)]
-  blink' s | False = fromList [(s * 2024, 1), (s,-1)]
-
-merge' : Int -> Int -> Int
-merge' a b = max 0 $ a + b
+blink' : Int -> Int -> SortedMap Int Int
+blink' 0 n = fromList [(1, n)]
+blink' s n with (mod (nDig s) 2 == 0)
+  blink' s n | True  = let (a,b) = splitDigs s
+                      in if a == b then fromList [(a, 2 * n)]
+                                   else fromList [(a, n), (b, n)]
+  blink' s n | False = fromList [(s * 2024, n)]
 
 blink : Int -> SortedMap Int Int -> SortedMap Int Int
 blink 0 stones = stones
-blink n stones = blink (traceVal (n - 1)) stones'
-  where
-    foo = map blink' $ map fst . filter ((>0). snd) $ Data.SortedMap.toList stones
-    stones' = foldl (mergeWith merge') stones $ traceVal foo
+blink n stones = blink (n - 1) . foldl (mergeWith (+)) empty
+               . map (uncurry blink') $ Map.toList stones
 
-process : List Int -> (SortedMap Int Int,Int)
+observe : List Int -> Int -> Int
+observe s n = sum . values . blink n . fromList $ zip s $ replicate (length s) 1
+
+process : List Int -> (Int, Int)
 process stones = (silver,gold)
   where
-    nums : List Int
-    nums  = replicate (length stones) 1
-    silver = blink 6 . fromList $ zip stones nums
-    gold = sum $ values silver
-    -- gold   = sum . values . blink 25 . fromList $ zip stones nums
+    silver = observe stones 25
+    gold   = observe stones 75
 
 public export
 solve : IO ()
@@ -65,4 +56,4 @@ solve = do file <- readFile path
                                            ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
-    path = "./rsc/day11-example.txt"
+    path = "./rsc/day11.txt"
