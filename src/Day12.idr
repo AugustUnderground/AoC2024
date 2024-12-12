@@ -45,7 +45,7 @@ flood' garden flooded stack area perim with (leftMost stack)
 
 flood : SortedMap (Int,Int) Char -> List (Int,Int)
 flood garden with (leftMost garden) 
-  flood garden | Nothing    = []
+  flood garden | Nothing        = []
   flood garden | Just ((r,c),p) =
     let stack = fromList [((r,c),p)]
         (area,perim,flooded) = flood' garden empty stack 0 0
@@ -57,14 +57,29 @@ segment (r1,c1) (r2,c2) = ((dr == 1) && (c1 == c2)) || ((dc == 1)  && (r1 == r2)
     dr = abs $ r1 - r2
     dc = abs $ c1 - c2
 
+order : (Int,Int) -> (Int,Int) -> Ordering
+order (r1,c1) (r2,c2) with (r1 - r2) | (c1 - c2)
+  order (r1,c1) (r2,c2) |   1  |   _  = if c1 == c2 then EQ else LT
+  order (r1,c1) (r2,c2) | (-1) |   _  = if c1 == c2 then EQ else LT
+  order (r1,c1) (r2,c2) |   _  |   1  = if r1 == r2 then EQ else GT
+  order (r1,c1) (r2,c2) |   _  | (-1) = if r1 == r2 then EQ else GT
+  order (r1,c1) (r2,c2) |   _  | _    = GT
+
+segments : List a -> Int
+segments []  = 0
+segments [e] = 2
+segments  l  = 1
+
+horiz : SortedSet (Int,Int) -> Int -> Int -> 
+
 fill' : SortedMap (Int,Int) Char -> SortedMap (Int,Int) Char
        -> SortedMap (Int,Int) Char -> Int -> SortedSet (Int,Int) 
        -> (Int,Int, SortedMap (Int,Int) Char)
 fill' garden flooded stack area perim with (leftMost stack)
   fill' garden flooded stack area perim | Nothing = 
-    let foo = map (length . forget) . traceVal . groupBy segment $ S.toList perim
+    let foo = map (segments . forget) . groupBy segment . sortBy order . traceVal $ S.toList perim
         fence : Int
-        fence = cast $ length foo
+        fence = traceVal $ sum foo
      in (area,fence,flooded)
   fill' garden flooded stack area perim | Just ((row,col), plant) =
     let valid : (Int,Int) -> Bool
