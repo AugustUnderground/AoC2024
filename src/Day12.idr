@@ -51,49 +51,52 @@ flood garden with (leftMost garden)
         (area,perim,flooded) = flood' garden empty stack 0 0
         in ((area,perim) ::) . flood . foldl (flip delete) garden $ keys flooded
 
-segment : (Int,Int) -> (Int,Int) -> Bool
-segment (r1,c1) (r2,c2) = ((dr == 1) && (c1 == c2)) || ((dc == 1)  && (r1 == r2))
+look' : Int -> Int -> List ((Int,Int), (Int,Int))
+look' r c = [ ((dr,dc), (r+dr,c+dc) ) | (dr,dc) <- [(1,0),(0,1),(-1,0),(0,-1)] ]
+
+findSides : List ((Int,Int),(SortedSet (Int,Int))) -> Int
+findSides          []        = 0
+findSides ((_,rcs) :: perim) = sides + findSides perim
   where
-    dr = abs $ r1 - r2
-    dc = abs $ c1 - c2
-
-order : (Int,Int) -> (Int,Int) -> Ordering
-order (r1,c1) (r2,c2) with (r1 - r2) | (c1 - c2)
-  order (r1,c1) (r2,c2) |   1  |   _  = if c1 == c2 then EQ else LT
-  order (r1,c1) (r2,c2) | (-1) |   _  = if c1 == c2 then EQ else LT
-  order (r1,c1) (r2,c2) |   _  |   1  = if r1 == r2 then EQ else GT
-  order (r1,c1) (r2,c2) |   _  | (-1) = if r1 == r2 then EQ else GT
-  order (r1,c1) (r2,c2) |   _  | _    = GT
-
-segments : List a -> Int
-segments []  = 0
-segments [e] = 2
-segments  l  = 1
-
-horiz : SortedSet (Int,Int) -> Int -> Int -> 
+    walk' : List (Int,Int) -> SortedSet (Int,Int) -> SortedSet (Int,Int)
+    walk' [] seen = seen
+    walk' ((r,c) :: rcs') seen with (S.contains (r,c) seen)
+      walk' ((r,c) :: rcs') seen | True = walk' rcs' seen
+      walk' ((r,c) :: rcs') seen | False = 
+        let seen' = S.insert (r,c) seen
+            rcs'' = [ (r+dr,c+dc) | (dr,dc) <- [(1,0),(0,1),(-1,0),(0,-1)]
+                  , S.contains (r+dr,c+dc) rcs ]
+         in walk' (nub $ rcs' ++ rcs'') seen'
+    walk : List (Int,Int) -> SortedSet (Int,Int) -> Int
+    walk [] _ = 0
+    walk ((r,c) :: rcs') seen with (S.contains (r,c) seen)
+      walk ((r,c) :: rcs') seen | True  = walk rcs' seen
+      walk ((r,c) :: rcs') seen | False = let seen' = walk' [(r,c)] seen
+                                           in 1 + walk rcs' seen'
+    sides = walk (S.toList rcs) S.empty
 
 fill' : SortedMap (Int,Int) Char -> SortedMap (Int,Int) Char
-       -> SortedMap (Int,Int) Char -> Int -> SortedSet (Int,Int) 
-       -> (Int,Int, SortedMap (Int,Int) Char)
+      -> SortedMap (Int,Int) Char -> Int -> SortedMap (Int,Int) (SortedSet (Int,Int))
+      -> (Int,Int, SortedMap (Int,Int) Char)
 fill' garden flooded stack area perim with (leftMost stack)
   fill' garden flooded stack area perim | Nothing = 
-    let foo = map (segments . forget) . groupBy segment . sortBy order . traceVal $ S.toList perim
-        fence : Int
-        fence = traceVal $ sum foo
-     in (area,fence,flooded)
+    let sides = findSides $ M.toList perim
+     in (area,sides,flooded)
   fill' garden flooded stack area perim | Just ((row,col), plant) =
     let valid : (Int,Int) -> Bool
-        valid p = (not $ contains flooded p) 
-                && (plant == (fromMaybe '-' $ lookup p garden))
+        valid p = (not $ contains flooded p) &&
+                  (plant == (fromMaybe '-' $ lookup p garden))
         valid' : (Int,Int) -> Bool
         valid' p = (not $ contains garden p) 
                 || (plant /= (fromMaybe '-' $ lookup p garden))
-        plots  = look row col
+        plots  = look' row col
         stack' = foldl (\m,rc => insert rc plant m) (delete (row,col) stack)
-               $ filter valid plots
+               . filter valid $ map snd plots
         area'  = area + 1
-        sides = filter valid' plots
-        perim' = S.union perim $ S.fromList sides
+        rc = S.fromList [(row,col)]
+        sides  =  M.fromList . map (\(dir,_) => (dir, rc))
+               $ filter (valid' . snd) plots
+        perim' = M.mergeWith S.union perim sides
         flooded' = insert (row,col) plant flooded
      in fill' garden flooded' stack' area' perim'
 
@@ -102,7 +105,7 @@ fill garden with (leftMost garden)
   fill garden | Nothing    = []
   fill garden | Just ((r,c),p) =
     let stack = M.fromList [((r,c),p)]
-        (area,perim,flooded) = fill' garden empty stack 0 S.empty 
+        (area,perim,flooded) = fill' garden empty stack 0 M.empty 
         in ((area,perim) ::) . fill . foldl (flip delete) garden $ keys flooded
 
 process : List (List Char) -> (Int,Int)
@@ -126,4 +129,4 @@ solve = do file <- readFile path
                                            ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
-    path = "./rsc/day12-example.txt"
+    path = "./rsc/day12.txt"
