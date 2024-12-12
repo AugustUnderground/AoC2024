@@ -54,9 +54,9 @@ flood garden with (leftMost garden)
 look' : Int -> Int -> List ((Int,Int), (Int,Int))
 look' r c = [ ((dr,dc), (r+dr,c+dc) ) | (dr,dc) <- [(1,0),(0,1),(-1,0),(0,-1)] ]
 
-findSides : List ((Int,Int),(SortedSet (Int,Int))) -> Int
+findSides : List (SortedSet (Int,Int)) -> Int
 findSides          []        = 0
-findSides ((_,rcs) :: perim) = sides + findSides perim
+findSides (rcs :: perim) = sides + findSides perim
   where
     walk' : List (Int,Int) -> SortedSet (Int,Int) -> SortedSet (Int,Int)
     walk' [] seen = seen
@@ -80,7 +80,7 @@ fill' : SortedMap (Int,Int) Char -> SortedMap (Int,Int) Char
       -> (Int,Int, SortedMap (Int,Int) Char)
 fill' garden flooded stack area perim with (leftMost stack)
   fill' garden flooded stack area perim | Nothing = 
-    let sides = findSides $ M.toList perim
+    let sides = findSides $ M.values perim
      in (area,sides,flooded)
   fill' garden flooded stack area perim | Just ((row,col), plant) =
     let valid : (Int,Int) -> Bool
