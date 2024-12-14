@@ -7,7 +7,6 @@ import Data.Nat
 import Data.List1
 import Data.SortedMap as M
 import Data.SortedSet as S
-import Debug.Trace
 
 contains : SortedMap k v -> k -> Bool
 contains m k with (lookup k m)
@@ -15,7 +14,7 @@ contains m k with (lookup k m)
   contains m k | Nothing = False
 
 look : Int -> Int -> List (Int,Int)
-look row col = [ (r,c) | (r,c) <- [north,south,west,east] ]
+look row col = [north,south,west,east]
   where
     north = (row - 1, col)
     south = (row + 1, col)
@@ -24,9 +23,9 @@ look row col = [ (r,c) | (r,c) <- [north,south,west,east] ]
 
 flood' : SortedMap (Int,Int) Char -> SortedMap (Int,Int) Char
        -> SortedMap (Int,Int) Char -> Int -> Int
-       -> (Int,Int, SortedMap (Int,Int) Char)
+       -> (Int, Int, SortedMap (Int,Int) Char)
 flood' garden flooded stack area perim with (leftMost stack)
-  flood' garden flooded stack area perim | Nothing                 = (area,perim,flooded)
+  flood' garden flooded stack area perim | Nothing = (area,perim,flooded)
   flood' garden flooded stack area perim | Just ((row,col), plant) =
     let valid : (Int,Int) -> Bool
         valid p = (not $ contains flooded p) 
