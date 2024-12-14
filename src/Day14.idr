@@ -25,20 +25,17 @@ mkRobot str' with (unpack str')
 
 sim : Int -> List Robot -> List Robot
 sim _ [] = []
-sim s (r :: rs) with ((px r, py r)) | ((vx r, vy r))
-  sim s (r :: rs) | (x,y) | (x',y') =
-    let xx = if x' > 0
-                then (`mod` 101) . (x+) . abs $ s * x'
-                else (100-) . (`mod` 101) . ((100-x)+) . abs $ s * x'
-        yy = if y' > 0
-                then (`mod` 103) . (y+) . abs $ s * y'
-                else (102-) . (`mod` 103) . ((102-y)+) . abs $ s * y'
-        r' = MkRobot xx yy x' y'
-     in r' :: sim s rs
+sim s ((MkRobot x y x' y') :: rs)  = MkRobot xx yy x' y' :: sim s rs
+    where
+      xx = if x' > 0
+              then (`mod` 101) . (x+) . abs $ s * x'
+              else (100-) . (`mod` 101) . ((100-x)+) . abs $ s * x'
+      yy = if y' > 0
+              then (`mod` 103) . (y+) . abs $ s * y'
+              else (102-) . (`mod` 103) . ((102-y)+) . abs $ s * y'
 
 quadrants : List Robot -> Int
-quadrants rs = let (a,b,c,d) = foldl g (0,0,0,0) rs
-                in (a * b * c * d)
+quadrants rs = let (a,b,c,d) = foldl g (0,0,0,0) rs in (a * b * c * d)
   where
     x : Int
     x = 100 `div` 2
