@@ -42,10 +42,10 @@ xor : Int -> Int -> Int
 xor 0 0 = 0
 xor x 0 = x
 xor 0 y = y
-xor x y = b0 + 2 * rest
+xor x y = b + 2 * r
   where
-    b0 = (x `mod` 2) `xor'` (y `mod` 2)
-    rest = xor (x `div` 2) (y `div` 2)
+    b = xor' (mod x 2) (mod y 2)
+    r = xor  (div x 2) (div y 2)
 
 combo : Computer -> Int -> Int
 combo (Comp a _ _ _ _) 4 = a
