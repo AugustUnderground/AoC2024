@@ -5,7 +5,6 @@ import Data.String
 import Data.Maybe
 import Data.List
 import Data.List1
-import Debug.Trace
 
 record Computer where
   constructor Comp
@@ -83,16 +82,15 @@ run c@(Comp _ _ _ x _) p with (x >= (cast $ length p))
      in run c' p
 
 testA : Computer -> List Int -> Int -> List Int
-testA (Comp _ b c i p) prog a = out $ run comp prog
-  where
-    comp = Comp a b c i p
+testA (Comp _ b c i p) prog a = out $ run (Comp a b c i p) prog
 
 test : Computer -> List Int -> Int -> List Int -> List Int
 test _    _    i    []        = []
 test comp prog i (n :: v) = v' ++ test comp prog i v
   where
     ns = [ 8 * n + o | o <- [0 .. 7]]
-    v' = filter ((==(reverse . take (cast i) $ reverse prog)) . testA comp prog) ns
+    r  = reverse . take (cast i) $ reverse prog
+    v' = filter ((==r) . testA comp prog) ns
 
 test' : Computer -> List Int -> Int -> List Int -> (Int, List Int)
 test' c p i v = (i + 1, test c p i v)
