@@ -84,13 +84,6 @@ bt seen branches target kost path@((d,loc) :: _) with
                                    in if (cst == kost) then (branches', map snd path') else (branches',[])
                              else bt seen' branches' target kost (n :: path) 
 
-lee : SortedSet (Int,Int) -> SortedSet (Int,Int) -> Int -> List (Int, ((Int,Int), (Dir,Int))) -> Int
-lee grid seen kost [] = 0 
-lee grid seen kost wave@((i,_) :: _) = 0 
-  where
-    front' = takeWhile ((==i) . fst) wave
-    foo = map (\(_,(l,(d,c))) => map look l) front'
-
 process : List String -> (Int,Int)
 process input = let (grid, start, end) = parse input
                     (silver, seen) = djk grid end empty [(0,(start,E))]
