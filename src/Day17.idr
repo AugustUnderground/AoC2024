@@ -12,12 +12,6 @@ record Computer where
   regA, regB, regC, ptrI : Int
   out : List Int
 
-Show Computer where
-  show (Comp a b c i o) = "Registers A: " ++ show a ++ ", B: "
-                       ++ show b ++ ", C: " ++ show c
-                       ++ "; IP: " ++ show i
-                       ++ "; Output: " ++ show o
-
 readInt : String -> Int
 readInt = fromMaybe 0 . parseInteger {a=Int}
 
@@ -111,7 +105,7 @@ process input = let (comp, prog) = parse input
                                  $ iterateN (length prog + 1)
                                             (uncurry (test' comp prog))
                                             (1, [0])
-                 in (silver,gold)
+                 in (silver, gold)
 
 public export
 solve : IO ()
