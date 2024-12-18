@@ -31,12 +31,11 @@ lee grid visited target step front with (contains target front) | (front == empt
      in lee grid visited' target step' front'
 
 lee' : Int -> List (Int,Int) -> (Int,Int)
-lee' lim (c :: c' :: corr') =
+lee' lim (c :: corr) =
      case (lee grid empty (0,0) 0 $ S.singleton (lim,lim)) of
           Just _  => c
           Nothing => lee' lim corr
   where
-    corr = c' :: corr'
     grid  = flip difference (S.fromList corr)
           $ fromList [ (x,y) | x <- [0 .. lim], y <- [0 .. lim] ]
 lee' _ _ = (0,0)
