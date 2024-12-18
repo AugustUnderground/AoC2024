@@ -31,14 +31,15 @@ lee grid visited target step front with (contains target front) | (front == empt
      in lee grid visited' target step' front'
 
 lee' : Int -> List (Int,Int) -> (Int,Int)
-lee' lim corr with (reverse . drop 1 . reverse $ corr)
-  lee' lim corr | corr' =
-    let grid  = flip difference (S.fromList corr')
-              $ fromList [ (x,y) | x <- [0 .. lim], y <- [0 .. lim] ]
-        final = fromMaybe (0,0) $ last' corr
-     in case (lee grid empty (lim, lim) 0 $ S.singleton (0,0)) of
-             Just _  => final
-             Nothing => lee' lim . reverse . drop 1 $ reverse corr
+lee' lim (c :: c' :: corr') =
+     case (lee grid empty (0,0) 0 $ S.singleton (lim,lim)) of
+          Just _  => c
+          Nothing => lee' lim corr
+  where
+    corr = c' :: corr'
+    grid  = flip difference (S.fromList corr)
+          $ fromList [ (x,y) | x <- [0 .. lim], y <- [0 .. lim] ]
+lee' _ _ = (0,0)
 
 process : List String -> (Int,(Int,Int))
 process input = (silver,gold)
@@ -52,7 +53,7 @@ process input = (silver,gold)
     grid   = flip difference corr'
            $ fromList [ (x,y) | x <- [0 .. lim], y <- [0 .. lim] ]
     silver = fromMaybe 0 . lee grid empty (lim, lim) 0 $ S.singleton (0,0)
-    gold   = lee' lim corr
+    gold   = lee' lim $ reverse corr
 
 public export
 solve : IO ()
