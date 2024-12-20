@@ -63,9 +63,6 @@ space : List (Int,Int)
 space = [ (x', y') | x' <- [-20 .. 20], y' <- [-20 .. 20]
                    , ((abs x') + (abs y')) <= 20 ]
 
-space' : List Int
-space' = [ abs x' - abs y' | (x',y') <- space]
-
 countCheats' : List ((Int,Int), Int) -> SortedMap (Int,Int) Int -> Int
 countCheats'            []        _       = 0
 countCheats' (((r,c),d) :: dists) distMap = nchts + countCheats' dists distMap
@@ -74,9 +71,9 @@ countCheats' (((r,c),d) :: dists) distMap = nchts + countCheats' dists distMap
     nn (r',c') with (M.lookup (r+r',c+c') distMap)
       _ | Nothing = 0
       _ | Just d' = if (d > d') && ((d - d' - (abs r') - (abs c')) >= 100)
-                            then 1 else 0
+                       then 1 else 0
     nchts = sum $ map nn space
-          
+
 process : List String -> (Int,Int)
 process input = let (grid, start, end) = parse input
                     distMap = distances grid (M.singleton start 0)
@@ -84,7 +81,7 @@ process input = let (grid, start, end) = parse input
                     silver  = countCheats  (M.toList distMap) distMap
                     gold    = countCheats' (M.toList distMap) distMap
                  in (silver,gold)
-  
+
 public export
 solve : IO ()
 solve = do file <- readFile path
