@@ -97,4 +97,4 @@ solve = do file <- readFile path
                                            ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
-    path = "./rsc/day19.txt"
+    path = "./rsc/day19-example.txt"

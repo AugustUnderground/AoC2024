@@ -37,5 +37,5 @@ run ((day,sol) :: days) = do
   run days
 
 main : IO ()
-main = Day21.solve
+main = Day16.solve
   -- run solutions

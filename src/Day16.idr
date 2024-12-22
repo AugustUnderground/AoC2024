@@ -6,94 +6,107 @@ import Data.Maybe
 import Data.List
 import Data.Nat
 import Data.SortedSet as S
-import Debug.Trace
-
-data Dir = N | S | W | E
-
-Eq Dir where
-  N == N = True
-  S == S = True
-  W == W = True
-  E == E = True
-  _ == _ = False
-
-Show Dir where
-  show N = "^"
-  show S = "v"
-  show W = "<"
-  show E = ">"
+import Data.SortedMap as M
 
 parse : List String -> (SortedSet (Int,Int), (Int,Int), (Int,Int))
-parse grid = (insert end tiles, start, end)
+parse maze = (insert end tiles, start, end)
   where
     len : Int
-    len   = cast . pred $ length grid
+    len   = cast . pred $ length maze
     elems = foldr (++) []
            $ zipWith (\r,l => zipWith (\c,v => ((r,c),v)) [0 .. len] l)
-                     [0 .. len] $ map unpack grid
+                     [0 .. len] $ map unpack maze
     tiles = S.fromList . map fst $ filter ((=='.') . snd) elems
     start = fromMaybe (0,0) . head' . map fst $ filter ((=='S') . snd) elems
     end   = fromMaybe (0,0) . head' . map fst $ filter ((=='E') . snd) elems
 
-look : (Int, Int) -> List (Dir, (Int,Int))
-look (r,c) = [ (d, (r+x,c+y)) | (d, (x,y)) <- [(E, (0,1)),(S, (1,0)),(N, (-1,0)),(W, (0,-1))]]
+score : (Int,Int) -> (Int,Int) -> Int
+score ( 1, 0) ( 1, 0) =    1
+score ( 1, 0) ( 0,-1) = 1001
+score ( 1, 0) ( 0, 1) = 1001
+score ( 0,-1) ( 0,-1) =    1
+score ( 0,-1) ( 1, 0) = 1001
+score ( 0,-1) (-1, 0) = 1001
+score ( 0, 1) ( 0, 1) =    1
+score ( 0, 1) ( 1, 0) = 1001
+score ( 0, 1) (-1, 0) = 1001
+score (-1, 0) (-1, 0) =    1
+score (-1, 0) ( 0,-1) = 1001
+score (-1, 0) ( 0, 1) = 1001
+score    _       _    = 2001
 
-cost : Dir -> Dir -> Int
-cost d1 d2 with (d1 == d2)
-  _ | True  = 1
-  _ | False = 1001
+record Position where
+  constructor Pos
+  cst : Int
+  pos : (Int,Int)
+  dir : (Int,Int)
+  pth : SortedSet (Int,Int)
 
-cost' : (Int,((Int,Int),Dir)) -> (Int,((Int,Int),Dir)) -> Ordering
-cost' (c1, _) (c2, _) with (c1 < c2) | (c1 > c2)
+Eq Position where
+  (Pos c1 o1 d1 p1) == (Pos c2 o2 d2 p2) =
+    (c1 == c2) && (o1 == o2) && (d1 == d2) && (p1 == p2)
+
+Ord Position where
+  compare (Pos c1 _ _ _) (Pos c2 _ _ _) with (c1 < c2) | (c1 > c2)
+    _ | True | _    = LT
+    _ | _    | True = GT
+    _ | _    | _    = EQ
+
+Stack : Type
+Stack = List (Position)
+
+orient : (Int,Int) -> (Int,Int) -> (Int,Int)
+orient (x, y) (x', y') = (x' - x, y' - y)
+
+adj : (Int,Int) -> (Int,Int) -> List (Int,Int)
+adj (x,y) ( 0, 1) = [(x + 1, y), (x - 1, y), (x, y + 1)]
+adj (x,y) ( 0,-1) = [(x + 1, y), (x - 1, y), (x, y - 1)]
+adj (x,y) ( 1, 0) = [(x + 1, y), (x, y + 1), (x, y - 1)]
+adj (x,y) (-1, 0) = [(x - 1, y), (x, y + 1), (x, y - 1)]
+adj (x,y)    _    = [(x + 1, y), (x - 1, y), (x, y + 1), (x, y - 1)]
+
+po : (Int, a) -> (Int, a) -> Ordering
+po (a, _) (b, _) with (a < b) | (a > b)
   _ | True | _    = LT
   _ | _    | True = GT
   _ | _    | _    = EQ
 
-djk : SortedSet (Int,Int) -> (Int,Int) -> SortedSet (Int,Int)
-  -> List (Int,((Int,Int),Dir)) -> (Int, SortedSet (Int,Int))
-djk grid _      seen [] = (0,seen)
-djk grid target seen ((c,(s,d)) :: stack) with (s == target)
-  djk grid target seen ((c,(s,d)) :: stack) | True  = (c, insert s seen)
-  djk grid target seen ((c,(s,d)) :: stack) | False =
-    let moves  = map (\(d',c') => (c + cost d d', (c', d')))
-               . filter (not . flip contains seen . snd)
-               . filter (flip contains grid . snd) $ look s
-        seen'  = insert s seen
-        stack' = sortBy cost' $ moves ++ stack
-     in djk grid target seen' stack'
+chkp : List (Int, a) -> Int -> Bool
+chkp          []    _ = False
+chkp ((c', _) :: _) c = c' < c
 
-bt : SortedSet (Int,Int) -> SortedSet (Int,Int) -> (Int,Int) -> Int -> List (Dir, (Int,Int)) -> (SortedSet (Int,Int), List (Int,Int))
-bt seen branches target kost [] = (branches, [])
-bt seen branches target kost path@((d,loc) :: _) with
-    (filter (flip contains seen . snd) . nub . look $ loc)
-  bt seen branches target kost path@((d,loc) :: _) | []  = (branches, [])
-  bt seen branches target kost path@((d,loc) :: _) | nxt =
-    let seen' = foldr delete seen $ map snd nxt
-        next = filter (not . flip contains branches . snd) nxt
-        bar : List Dir -> Int
-        bar [] = 0
-        bar (d :: d' :: ds) = if d == d' then 1 + bar (d' :: ds)
-                                         else 1001 + bar (d' :: ds)
-        bar [_] = 1
-     in case next of
-             [] => traceVal (branches, [])
-             (n :: _) => let branches' = insert (snd n) branches
-                          in if (target == snd n)
-                             then let path' = reverse $ nub $ (d,target) :: path
-                                      cst = bar . map Builtin.fst $ path'
-                                   in if (cst == kost) then (branches', map snd path') else (branches',[])
-                             else bt seen' branches' target kost (n :: path) 
+djk : SortedSet (Int,Int) -> (Int,Int) -> Stack -> SortedMap ((Int,Int),(Int,Int)) Int
+    -> List (Int, SortedSet (Int,Int)) -> List (Int, SortedSet (Int,Int))
+djk _    _                     []        _       paths                     = paths
+djk maze target ((Pos c p d t) :: stack) visited paths with
+    (p == target) | (M.lookup (p,d) visited)
+  djk maze target ((Pos c p d t) :: stack) visited paths | True  | _       =
+    djk maze target stack visited . sortBy po $ (c, t) :: paths
+  djk maze target ((Pos c p d t) :: stack) visited paths | False | Nothing = 
+    let visited' = M.insert (p,d) c visited
+     in djk maze target ((Pos c p d t) :: stack) visited' paths
+  djk maze target ((Pos c p d t) :: stack) visited paths | False | Just c' =
+    if (c' < c) || (chkp paths c)
+       then djk maze target stack visited paths
+       else let visited' = M.insert (p,d) c visited
+                valid    = filter (flip S.contains maze) $ adj p d
+                mp : (Int,Int) -> Position
+                mp p' = Pos c' p' d' t'
+                  where
+                    d' = orient p p'
+                    c' = c + score d d'
+                    t' = S.insert p' t
+                stack'   = stack ++ map mp valid
+             in djk maze target stack' visited' paths
 
 process : List String -> (Int,Int)
-process input = let (grid, start, end) = parse input
-                    (silver, seen) = djk grid end empty [(0,(start,E))]
-                    foo : (SortedSet (Int,Int), a) -> Maybe (SortedSet (Int,Int), List (Int,Int))
-                    foo (bs,_) = let (bs',p) = bt seen bs end (silver + 1) [(E,start)] 
-                                  in if bs' == empty then Nothing
-                                                 else Just (bs', p)
-                    paths          = iterate foo (empty, [])
-                    gold : Int
-                    gold = cast $ length paths
+process input = let (maze, start, end) = parse input
+                    stack  = [(Pos 0 start (0,1) (S.singleton start))]
+                    paths  = djk maze end stack empty []
+                    silver = fromMaybe 0 . head' . sort $ map fst paths
+                    gold   = cast {to=Int} . length . S.toList
+                           . foldr S.union empty . map snd
+                           $ filter ((==silver) . fst) paths
                  in (silver,gold)
 
 public export
@@ -105,4 +118,4 @@ solve = do file <- readFile path
                                            ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
-    path = "./rsc/day16-example.txt"
+    path = "./rsc/day16.txt"
