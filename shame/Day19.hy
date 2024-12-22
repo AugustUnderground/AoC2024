@@ -1,7 +1,7 @@
 (require hyrule *)
 
 (setv #(towels patterns)
-  (with [o (open "./rsc/day19-example.txt")]
+  (with [o (open "./rsc/day19.txt")]
     (let [i (-> o (.read ) (.split "\n\n"))
           t (-> i (get 0) (.strip) (.split ", "))
           p (-> i (get 1) (.split))]
@@ -12,13 +12,11 @@
         (in p m) (get m p)
         True     (let [tot (sum (lfor t ts :if (p.startswith t)
                                       (cp (get p (slice (len t) None)) ts m)))]
-                    (print (.format "{} : {}" p tot))
                     (setv (get m p) tot)
                     tot)))
 
 (defn solve [ts ps]
   (let [tp (lfor p ps (let [c (cp p ts)] #((> c 0) c)))
-        _ (print tp)
         possible (sum (map (fn [a] (get a 0)) tp))
         total    (sum (map (fn [a] (get a 1)) tp))]
     #(possible total)))
