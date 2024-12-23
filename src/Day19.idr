@@ -2,24 +2,12 @@ module Day19
 
 import System.File
 import Data.String
-import Data.Maybe
 import Data.List
 import Data.List1
 import Data.SortedMap as M
-import Data.SortedSet as S
-import Debug.Trace
-
-readInt : String -> Int
-readInt = fromMaybe 0 . parseInteger {a=Int}
+import Control.Monad.State
 
 data Color = White | Blue | Black | Red | Green
-
-Show Color where
-  show White = "w"
-  show Blue  = "u"
-  show Black = "b"
-  show Red   = "r"
-  show Green = "g"
 
 Eq Color where
   White == White = True
@@ -62,39 +50,48 @@ Pattern : Type
 Pattern = List Color
 
 parse : List (List String) -> (List Towel, List Pattern)
-parse [(towels' :: _), patterns'] = (towels, patterns)
+parse [(towels' :: _), designs'] = (towels, designs)
   where
-    towels   = map (map readColor . unpack . trim) . forget . split (==',') $ towels'
-    patterns = map (map readColor . unpack) $ patterns'
+    towels   = map (map readColor . unpack . trim) . forget . split (==',')
+             $ towels'
+    designs = map (map readColor . unpack) $ designs'
 parse _ = ([],[])
 
-countPatterns : List Towel -> SortedMap Pattern Int -> Pattern -> (Int, SortedMap Pattern Int)
-countPatterns _      memo   []    = (1,memo)
-countPatterns towels memo pattern with (lookup pattern memo)
-  countPatterns towels memo pattern | Just tot = traceVal $ (tot,memo)
-  countPatterns towels memo pattern | Nothing  = 
-    let pts = [ countPatterns towels memo $ drop (length t) pattern
-              | t <- towels, isPrefixOf t pattern]
-        tot = sum $ map fst pts
-        mem = foldl mergeLeft memo $ map snd pts
-     in (tot, insert pattern tot mem)
+count' : Pattern -> List Towel -> State (SortedMap Pattern Int) Int
+count' pattern towels = do
+  cache <- get
+  case (M.lookup pattern cache) of
+       Just cnt => pure cnt
+       Nothing  => do
+         let valid = filter (flip isPrefixOf pattern) towels
+         tot <- foldlM (\c,d => (c+) <$> count' (drop (length d) pattern) towels)
+                       0 valid
+         cache' <- get
+         put $ M.insert pattern tot cache'
+         pure tot
 
-process : List String -> Int
-process input = let (towels, patterns) = parse . forget . split null $ input
-                    available          = foldl (\m,p => snd $ countPatterns towels m p) empty patterns
-                    patterns'          = S.fromList patterns
-                    silver : Int
-                    silver = cast . length $ filter (\(p,t) => (S.contains p patterns') && (t > 0)) $ M.toList available
-                 in silver
+count : List Pattern -> List Towel -> State (SortedMap Pattern Int) (List Int)
+count          []           towels = pure []
+count (pattern :: patterns) towels = do
+  cnt  <- count' pattern towels
+  (cnt ::) <$> count patterns towels
+
+process : List String -> (Int,Int)
+process input = let (towels, designs) = parse . forget . split null $ input
+                    cache             = M.fromList [([],1)]
+                    achievable        = evalState cache (count designs towels)
+                    silver            = cast {to=Int} . length
+                                      $ filter (>0) achievable
+                    gold              = sum achievable
+                 in (silver,gold)
 
 public export
 solve : IO ()
 solve = do file <- readFile path
            case file of
-                Right content => let silver = process $ lines content
-                                     gold = 0
+                Right content => let (silver,gold) = process $ lines content
                                   in putStrLn $ "\tSilver: " ++ show silver
                                            ++ "\n\tGold:   " ++ show gold
                 Left  error   => putStrLn (show error)
   where
-    path = "./rsc/day19-example.txt"
+    path = "./rsc/day19.txt"
