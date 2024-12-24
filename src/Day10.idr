@@ -7,7 +7,6 @@ import Data.List
 import Data.Nat
 import Data.SortedSet
 import Data.SortedMap
-import Debug.Trace
 
 readInt : String -> Int
 readInt = fromMaybe 0 . parseInteger {a=Int}
