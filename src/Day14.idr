@@ -85,7 +85,7 @@ solve = do file <- readFile path
                                                         $ lines content
                                   in putStrLn $ "\tSilver: " ++ show silver
                                            ++ "\n\tGold:   " ++ show gold
-                                           ++ "\n\n"         ++ tree
+                                           -- ++ "\n\n"         ++ tree
                 Left  error   => putStrLn (show error)
   where
     path = "./rsc/day14.txt"

@@ -1,6 +1,7 @@
 module Main
 
 import Data.List
+import Data.String
 
 import Day01
 import Day02
@@ -12,10 +13,12 @@ import Day07
 import Day08
 import Day09
 import Day10
+import Day11
 import Day12
 import Day13
 import Day14
 import Day15
+import Day17
 import Day16
 import Day18
 import Day19
@@ -28,9 +31,13 @@ import Day24
 solutions : List (String, IO ())
 solutions = zip days sols
   where
-    days = map show [1 .. 7]
     sols = [ Day01.solve, Day02.solve, Day03.solve, Day04.solve, Day05.solve
-           , Day06.solve, Day07.solve ]
+           , Day06.solve, Day07.solve, Day08.solve, Day09.solve, Day10.solve
+           , Day11.solve, Day12.solve, Day13.solve, Day14.solve, Day15.solve
+           , Day16.solve, Day17.solve, Day18.solve, Day19.solve, Day20.solve
+           , Day21.solve, Day22.solve, Day23.solve, Day24.solve -- , Day25.solve
+           ]
+    days = map (padLeft 2 '0' . show) [1 .. length sols]
 
 run : List (String, IO ()) -> IO ()
 run [] = pure ()
@@ -40,5 +47,6 @@ run ((day,sol) :: days) = do
   run days
 
 main : IO ()
-main = Day24.solve
+main = do
+  Day24.solve
   -- run solutions
