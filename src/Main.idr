@@ -27,13 +27,14 @@ import Day21
 import Day22
 import Day23
 import Day24
+import Day25
 
 solutions : List (IO ())
 solutions = [ Day01.solve, Day02.solve, Day03.solve, Day04.solve, Day05.solve
             , Day06.solve, Day07.solve, Day08.solve, Day09.solve, Day10.solve
             , Day11.solve, Day12.solve, Day13.solve, Day14.solve, Day15.solve
             , Day16.solve, Day17.solve, Day18.solve, Day19.solve, Day20.solve
-            , Day21.solve, Day22.solve, Day23.solve, Day24.solve -- , Day25.solve
+            , Day21.solve, Day22.solve, Day23.solve, Day24.solve, Day25.solve
             ]
 
 run : List (IO ()) -> IO ()
@@ -48,6 +49,5 @@ run (sol :: sols) = putStrLn day >> sol >> run sols
         . cast {to=Int} $ length sols
 
 main : IO ()
-main = do
-  Day24.solve
-  -- run solutions
+main = run solutions
+  -- Day01.solve
