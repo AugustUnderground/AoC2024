@@ -28,23 +28,24 @@ import Day22
 import Day23
 import Day24
 
-solutions : List (String, IO ())
-solutions = zip days sols
-  where
-    sols = [ Day01.solve, Day02.solve, Day03.solve, Day04.solve, Day05.solve
-           , Day06.solve, Day07.solve, Day08.solve, Day09.solve, Day10.solve
-           , Day11.solve, Day12.solve, Day13.solve, Day14.solve, Day15.solve
-           , Day16.solve, Day17.solve, Day18.solve, Day19.solve, Day20.solve
-           , Day21.solve, Day22.solve, Day23.solve, Day24.solve -- , Day25.solve
-           ]
-    days = map (padLeft 2 '0' . show) [1 .. length sols]
+solutions : List (IO ())
+solutions = [ Day01.solve, Day02.solve, Day03.solve, Day04.solve, Day05.solve
+            , Day06.solve, Day07.solve, Day08.solve, Day09.solve, Day10.solve
+            , Day11.solve, Day12.solve, Day13.solve, Day14.solve, Day15.solve
+            , Day16.solve, Day17.solve, Day18.solve, Day19.solve, Day20.solve
+            , Day21.solve, Day22.solve, Day23.solve, Day24.solve -- , Day25.solve
+            ]
 
-run : List (String, IO ()) -> IO ()
-run [] = pure ()
-run ((day,sol) :: days) = do
-  putStrLn $ "Day " ++ day ++ ":"
-  sol
-  run days
+run : List (IO ()) -> IO ()
+run      []       = putStrLn $ "✧･ﾟ: *✧･ﾟ:* " ++ len
+                            ++ " solutions for AoC 2024" ++ " *:･ﾟ✧*:･ﾟ✧ "
+  where
+    len = padLeft 2 '0' . show . cast {to=Int} $ length solutions
+run (sol :: sols) = putStrLn day >> sol >> run sols
+  where
+    len = cast {to=Int} $ length solutions
+    day = (++":") . ("Day " ++) . padLeft 2 '0' . show . (len -)
+        . cast {to=Int} $ length sols
 
 main : IO ()
 main = do
